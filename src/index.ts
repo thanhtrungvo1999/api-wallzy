@@ -58,7 +58,15 @@ export default {
         return json({ data, page, limit });
       }
 
-      if (url.pathname.startsWith("/wallpapers/")) {
+      if (url.pathname === "/categories") {
+        const data = await supabase(
+          env,
+          "/rest/v1/categories?select=*"
+        );
+        return json({ data });
+      }
+
+      if (url.pathname.startsWith("/wallpapers/category/")) {
         const id = decodeURIComponent(url.pathname.slice("/wallpapers/".length));
 
         if (!id) return json({ error: "Missing wallpaper id" }, 400);
@@ -98,6 +106,95 @@ export default {
         );
 
         return json({ data, page, limit, category });
+      }
+
+      if (url.pathname.startsWith("/wallpapers/")) {
+        const id = decodeURIComponent(url.pathname.slice("/wallpapers/".length));
+
+        if (!id) return json({ error: "Missing wallpaper id" }, 400);
+
+        if (id.endsWith("/adjacent")) {
+          const wallpaperId = id.slice(0, -"/adjacent".length);
+          const currentRows = await supabase(
+            env,
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+              "&id=eq." + encodeURIComponent(wallpaperId) +
+              "&limit=1"
+          );
+
+          const current = Array.isArray(currentRows) ? currentRows[0] : null;
+          if (!current) return json({ error: "Wallpaper not found" }, 404);
+
+          const categoryFilter = current.category
+            ? "&category=eq." + encodeURIComponent(String(current.category))
+            : "";
+
+          const newerPath =
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            categoryFilter +
+            "&or=" + encodeURIComponent(
+              "(created_at.gt." + String(current.created_at) +
+              ",and(created_at.eq." + String(current.created_at) +
+              ",id.gt." + String(current.id) + "))"
+            ) +
+            "&order=created_at.asc,id.asc&limit=1";
+
+          const olderPath =
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            categoryFilter +
+            "&or=" + encodeURIComponent(
+              "(created_at.lt." + String(current.created_at) +
+              ",and(created_at.eq." + String(current.created_at) +
+              ",id.lt." + String(current.id) + "))"
+            ) +
+            "&order=created_at.desc,id.desc&limit=1";
+
+          const [newerRows, olderRows] = await Promise.all([
+            supabase(env, newerPath),
+            supabase(env, olderPath),
+          ]);
+
+          return json({
+            previous: Array.isArray(newerRows) ? newerRows[0] || null : null,
+            next: Array.isArray(olderRows) ? olderRows[0] || null : null,
+          });
+        }
+
+        const data = await supabase(
+          env,
+          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            "&id=eq." + encodeURIComponent(id) +
+            "&limit=1"
+        );
+
+        if (!Array.isArray(data) || data.length === 0) {
+          return json({ error: "Wallpaper not found" }, 404);
+        }
+
+        return json(data[0]);
+      }
+
+      if (url.pathname === "/wallpapers/search") {
+        const query = String(url.searchParams.get("q") || "").trim().toLowerCase().replace(/^#+/, "");
+        const offset = Math.max(0, Number(url.searchParams.get("offset") || "0"));
+        const limit = Math.min(21, Math.max(1, Number(url.searchParams.get("limit") || "21")));
+
+        if (!query) return json({ data: [], offset, limit, hasMore: false });
+
+        const data = await supabase(
+          env,
+          "/rest/v1/rpc/search_wallpapers?search_query=" + encodeURIComponent(query) +
+            "&search_offset=" + offset +
+            "&search_limit=" + limit
+        );
+
+        const rows = Array.isArray(data) ? data : [];
+        return json({
+          data: rows.slice(0, 20),
+          offset,
+          limit,
+          hasMore: rows.length > 20,
+        });
       }
 
       return json({ error: "Not found" }, 404);
