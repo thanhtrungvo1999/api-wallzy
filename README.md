@@ -9,14 +9,14 @@ Cloudflare Worker API for Wallzy wallpaper data.
 - GET /wallpapers/:id
 - GET /wallpapers/category/:slug?page=1&limit=20
 
-## Secrets
+## Secrets / variables
 
-Set these Worker secrets:
+Set these in the Cloudflare Worker settings:
 
-- SUPABASE_KEY — Supabase publishable/anon key
-- SUPABASE_URL — Supabase project URL
+- `SUPABASE_URL` — Supabase project URL (Worker variable)
+- `SUPABASE_KEY` — Supabase publishable/anon key (Worker secret)
 
-Do not commit the Supabase key.
+Do not put either value in `wrangler.jsonc` or commit the Supabase key.
 
 ## Deploy
 

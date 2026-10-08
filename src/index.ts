@@ -14,10 +14,17 @@ const json = (data: unknown, status = 200) =>
   });
 
 async function supabase(env: Env, path: string) {
-  const response = await fetch(env.SUPABASE_URL + path, {
+  const baseUrl = String(env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
+  const key = String(env.SUPABASE_KEY || "").trim();
+
+  if (!baseUrl || !key || baseUrl.includes("YOUR-PROJECT")) {
+    throw new Error("Supabase configuration is missing or still uses a placeholder URL.");
+  }
+
+  const response = await fetch(baseUrl + path, {
     headers: {
-      apikey: env.SUPABASE_KEY,
-      Authorization: "Bearer " + env.SUPABASE_KEY,
+      apikey: key,
+      Authorization: "Bearer " + key,
     },
   });
 
