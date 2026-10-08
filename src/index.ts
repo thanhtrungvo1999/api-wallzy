@@ -75,25 +75,6 @@ export default {
       }
 
       if (url.pathname.startsWith("/wallpapers/category/")) {
-        const id = decodeURIComponent(url.pathname.slice("/wallpapers/".length));
-
-        if (!id) return json({ error: "Missing wallpaper id" }, 400);
-
-        const data = await supabase(
-          env,
-          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
-            "&id=eq." + encodeURIComponent(id) +
-            "&limit=1"
-        );
-
-        if (!Array.isArray(data) || data.length === 0) {
-          return json({ error: "Wallpaper not found" }, 404);
-        }
-
-        return json(data[0]);
-      }
-
-      if (url.pathname.startsWith("/wallpapers/category/")) {
         const category = decodeURIComponent(
           url.pathname.slice("/wallpapers/category/".length)
         );
