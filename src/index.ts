@@ -22,7 +22,8 @@ async function supabase(env: Env, path: string) {
   });
 
   if (!response.ok) {
-    throw new Error("Supabase request failed: " + response.status);
+    const body = await response.text();
+    throw new Error(`Supabase request failed: ${response.status} ${body}`);
   }
 
   return response.json();
@@ -102,7 +103,10 @@ export default {
       return json({ error: "Not found" }, 404);
     } catch (error) {
       console.error(error);
-      return json({ error: "Internal server error" }, 500);
+      return json(
+        { error: "Internal server error", detail: error instanceof Error ? error.message : String(error) },
+        500
+      );
     }
   },
 };
