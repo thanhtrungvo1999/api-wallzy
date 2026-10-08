@@ -25,3 +25,6 @@ npm install
 npx wrangler secret put SUPABASE_KEY
 npx wrangler deploy
 ```
+
+
+<!-- Trigger deployment check -->
