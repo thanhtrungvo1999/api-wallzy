@@ -13,15 +13,16 @@ const json = (data: unknown, status = 200) =>
     },
   });
 
+const SUPABASE_PROJECT_URL = "https://ifxyedycsnmepnrszvcn.supabase.co";
+
 async function supabase(env: Env, path: string) {
-  const baseUrl = String(env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
   const key = String(env.SUPABASE_KEY || "").trim();
 
-  if (!baseUrl || !key || baseUrl.includes("YOUR-PROJECT")) {
-    throw new Error("Supabase configuration is missing or still uses a placeholder URL.");
+  if (!key) {
+    throw new Error("SUPABASE_KEY secret is missing from the Cloudflare Worker.");
   }
 
-  const response = await fetch(baseUrl + path, {
+  const response = await fetch(SUPABASE_PROJECT_URL + path, {
     headers: {
       apikey: key,
       Authorization: "Bearer " + key,
