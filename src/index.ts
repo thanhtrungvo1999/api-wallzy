@@ -108,6 +108,29 @@ export default {
         return json({ data, page, limit, category });
       }
 
+      if (url.pathname === "/wallpapers/search") {
+        const query = String(url.searchParams.get("q") || "").trim().toLowerCase().replace(/^#+/, "");
+        const offset = Math.max(0, Number(url.searchParams.get("offset") || "0"));
+        const limit = Math.min(21, Math.max(1, Number(url.searchParams.get("limit") || "21")));
+
+        if (!query) return json({ data: [], offset, limit, hasMore: false });
+
+        const data = await supabase(
+          env,
+          "/rest/v1/rpc/search_wallpapers?search_query=" + encodeURIComponent(query) +
+            "&search_offset=" + offset +
+            "&search_limit=" + limit
+        );
+
+        const rows = Array.isArray(data) ? data : [];
+        return json({
+          data: rows.slice(0, 20),
+          offset,
+          limit,
+          hasMore: rows.length > 20,
+        });
+      }
+
       if (url.pathname.startsWith("/wallpapers/")) {
         const id = decodeURIComponent(url.pathname.slice("/wallpapers/".length));
 
@@ -172,29 +195,6 @@ export default {
         }
 
         return json(data[0]);
-      }
-
-      if (url.pathname === "/wallpapers/search") {
-        const query = String(url.searchParams.get("q") || "").trim().toLowerCase().replace(/^#+/, "");
-        const offset = Math.max(0, Number(url.searchParams.get("offset") || "0"));
-        const limit = Math.min(21, Math.max(1, Number(url.searchParams.get("limit") || "21")));
-
-        if (!query) return json({ data: [], offset, limit, hasMore: false });
-
-        const data = await supabase(
-          env,
-          "/rest/v1/rpc/search_wallpapers?search_query=" + encodeURIComponent(query) +
-            "&search_offset=" + offset +
-            "&search_limit=" + limit
-        );
-
-        const rows = Array.isArray(data) ? data : [];
-        return json({
-          data: rows.slice(0, 20),
-          offset,
-          limit,
-          hasMore: rows.length > 20,
-        });
       }
 
       return json({ error: "Not found" }, 404);
