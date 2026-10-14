@@ -220,7 +220,7 @@ export default {
 
         const data = await supabase(
           env,
-          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             "&order=created_at.desc,id.desc" +
             "&offset=" + offset +
             "&limit=" + limit
@@ -244,7 +244,7 @@ export default {
 
         const data = await supabase(
           env,
-          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             "&category=eq." + encodeURIComponent(category) +
             "&order=created_at.desc,id.desc" +
             "&offset=" + offset +
@@ -280,7 +280,7 @@ export default {
           const wallpaperId = id.slice(0, -"/adjacent".length);
           const currentRows = await supabase(
             env,
-            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
               "&id=eq." + encodeURIComponent(wallpaperId) + "&limit=1"
           );
 
@@ -292,7 +292,7 @@ export default {
             : "";
 
           const newerPath =
-            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             categoryFilter +
             "&or=" + encodeURIComponent(
               "(created_at.gt." + String(current.created_at) +
@@ -302,7 +302,7 @@ export default {
             "&order=created_at.asc,id.asc&limit=1";
 
           const olderPath =
-            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+            "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             categoryFilter +
             "&or=" + encodeURIComponent(
               "(created_at.lt." + String(current.created_at) +
@@ -324,7 +324,7 @@ export default {
 
         const data = await supabase(
           env,
-          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,created_at" +
+          "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             "&id=eq." + encodeURIComponent(id) + "&limit=1"
         );
 
