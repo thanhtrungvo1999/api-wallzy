@@ -221,6 +221,7 @@ export default {
         const data = await supabase(
           env,
           "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
+            "&thumbnail_url=not.is.null&thumbnail_url=neq." +
             "&order=created_at.desc,id.desc" +
             "&offset=" + offset +
             "&limit=" + limit
@@ -246,6 +247,7 @@ export default {
           env,
           "/rest/v1/wallpapers?select=id,category,keywords,storage_path,public_url,thumbnail_url,created_at" +
             "&category=eq." + encodeURIComponent(category) +
+            "&thumbnail_url=not.is.null&thumbnail_url=neq." +
             "&order=created_at.desc,id.desc" +
             "&offset=" + offset +
             "&limit=" + limit
