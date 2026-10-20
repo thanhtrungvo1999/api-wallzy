@@ -133,6 +133,35 @@ export default {
         return json({ ok: true });
       }
 
+      // Temporary: checks whether phim.nguonc.com answers this Worker from the Cloudflare
+      // location it runs in (it rejects non-Vietnamese visitors).
+      if (url.pathname === "/debug/nguonc") {
+        const cf = (request as Request & { cf?: { colo?: string; country?: string } }).cf;
+        const targets = [
+          "https://phim.nguonc.com/api/films/phim-moi-cap-nhat?page=1",
+          "https://phim.nguonc.com/api/film/" + encodeURIComponent(url.searchParams.get("slug") || "tro-choi-con-muc"),
+        ];
+        const results = await Promise.all(targets.map(async (target) => {
+          const started = Date.now();
+          try {
+            const response = await fetch(target, { headers: { Accept: "application/json" } });
+            const body = await response.text();
+            return {
+              url: target,
+              status: response.status,
+              ms: Date.now() - started,
+              server: response.headers.get("server"),
+              cfRay: response.headers.get("cf-ray"),
+              isJson: body.trimStart().startsWith("{"),
+              preview: body.slice(0, 160),
+            };
+          } catch (error) {
+            return { url: target, error: String(error), ms: Date.now() - started };
+          }
+        }));
+        return json({ workerColo: cf?.colo || null, callerCountry: cf?.country || null, results });
+      }
+
       if (url.pathname === "/favorites") {
         const auth = requireUser(request);
         if (!auth) return privateJson({ error: "Unauthorized" }, 401);
